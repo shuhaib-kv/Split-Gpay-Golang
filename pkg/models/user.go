@@ -19,13 +19,14 @@ type User struct {
 type Group struct {
 	gorm.Model
 	Name      string    `gorm:"type:varchar(50);not null"`
+	Adminid   uint      `gorm:"not null"`
 	CreatedAt time.Time `gorm:"default:now()"`
 }
 
-type GroupMember struct {
+type Groupmember struct {
 	gorm.Model
-	GroupID uint `gorm:"not null"`
-	UserID  uint `gorm:"not null"`
+	Groupid uint `gorm:"not null"`
+	Userid  uint `gorm:"not null"`
 }
 
 type Expense struct {

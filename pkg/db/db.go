@@ -18,5 +18,7 @@ func ConnectTODatabase() {
 	}
 	DBS.AutoMigrate(
 		&models.User{},
+		&models.Group{},
+		&models.Groupmember{},
 	)
 }
