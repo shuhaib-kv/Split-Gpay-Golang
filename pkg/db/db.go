@@ -8,15 +8,15 @@ import (
 	"gorm.io/gorm"
 )
 
-var dbs *gorm.DB
+var DBS *gorm.DB
 
 func ConnectTODatabase() {
 	var err error
-	dbs, err = gorm.Open(postgres.Open("host=localhost port=5432 user=postgres password=soib dbname=interview"), &gorm.Config{})
+	DBS, err = gorm.Open(postgres.Open("host=localhost port=5432 user=postgres password=soib dbname=interview"), &gorm.Config{})
 	if err != nil {
 		fmt.Println("Datatbase connection faild")
 	}
-	dbs.AutoMigrate(
+	DBS.AutoMigrate(
 		&models.User{},
 	)
 }

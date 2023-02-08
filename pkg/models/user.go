@@ -8,8 +8,8 @@ import (
 
 type User struct {
 	gorm.Model
-	Firstname string `gorm:"type:varchar(50);not null;unique"`
-	Lastname  string `gorm:"type:varchar(50);not null;unique"`
+	Firstname string `gorm:"type:varchar(50);not null;"`
+	Lastname  string `gorm:"type:varchar(50);not null;"`
 	Username  string `gorm:"type:varchar(50);not null;unique"`
 	Email     string `gorm:"type:varchar(255);not null;unique"`
 	Password  string `gorm:"type:varchar(255);not null"`
