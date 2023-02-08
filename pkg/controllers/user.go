@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/db"
-	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/middleware"
 	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/models"
 )
 
@@ -90,25 +92,36 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
-	tokenString, err := middleware.GenerateJWT(user.Email, user.ID)
-	c.SetCookie("UserAuth", tokenString, 3600*24*30, "", "", false, true)
+	// Generate a jwt token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+	})
+	// SIgn and get the complete encoded token as a string using the secret key
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		c.Abort()
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to create token",
+		})
+
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
+	// Sent it back
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("UserAuthorization", tokenString, 3600*24*30, "", "", false, true)
+
+	c.JSON(http.StatusAccepted, gin.H{
 		"status":  true,
-		"message": "ok",
+		"message": "login success",
 		"data":    tokenString,
 	})
-
+	return
 }
 func Home(c *gin.Context) {
-
+	id := c.GetUint("id")
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "ok",
-		"data":    "",
+		"data":    id,
 	})
 }

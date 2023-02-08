@@ -13,15 +13,8 @@ import (
 
 func CreateGroup(c *gin.Context) {
 
-	useremail := c.GetString("user")
-	fmt.Println(useremail)
-	var UsersID int
-	err := db.DBS.Raw("select id from users where email=?", useremail).Scan(&UsersID)
-	if errors.Is(err.Error, gorm.ErrRecordNotFound) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "user coudnt find",
-		})
-	}
+	id := c.GetUint("id")
+
 	var body struct {
 		Name string
 	}
@@ -29,7 +22,7 @@ func CreateGroup(c *gin.Context) {
 
 	var Group = models.Group{
 		Name:    body.Name,
-		Adminid: uint(UsersID),
+		Adminid: id,
 	}
 	db.DBS.Create(&Group)
 }

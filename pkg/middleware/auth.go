@@ -1,99 +1,62 @@
 package middleware
 
 import (
-	"errors"
+	"fmt"
+	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
+	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/db"
+	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/models"
 )
 
-var P string
-var S string
+func UserAuth(c *gin.Context) {
 
-// func AdminAuth() gin.HandlerFunc {
-// 	return func(context *gin.Context) {
-// 		// tokenString := context.GetHeader("Authorization")
-// 		tokenString, err := context.Cookie("Adminjwt")
-// 		if tokenString == "" {
-// 			context.JSON(401, gin.H{"error": "request does not contain an access token"})
-// 			context.Abort()
-// 			return
-// 		}
-// 		err = ValidateToken(tokenString)
-// 		if err != nil {
-// 			context.JSON(401, gin.H{"error": err.Error()})
-// 			context.Abort()
-// 			return
-// 		}
-// 		context.Next()
-// 	}
-// }
+	// Get the cookie off req
+	tokenString, err := c.Cookie("UserAuthorization")
 
-func UserAuth() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		tokenString, err := context.Cookie("UserAuth")
-		if tokenString == "" {
-			context.JSON(401, gin.H{"error": "request does not contain an access token"})
-			context.Abort()
-			return
-		}
-		err = ValidateToken(tokenString)
-		context.Set("user", P)
-		context.Set("id", S)
-		if err != nil {
-			context.JSON(401, gin.H{"error": err.Error()})
-			context.Abort()
-			return
-		}
-
-		context.Next()
-	}
-}
-
-var JwtKey = []byte("supersecretkey")
-
-type JWTClaim struct {
-	Email string `json:"email"`
-	Uid   uint   `json:"uid"`
-	jwt.StandardClaims
-}
-
-func GenerateJWT(email string, uid uint) (tokenString string, err error) {
-	expirationTime := time.Now().Add(1 * time.Hour)
-	claims := &JWTClaim{
-		Email: email,
-		Uid:   uid,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err = token.SignedString(JwtKey)
-	return
-}
-
-func ValidateToken(signedToken string) (err error) {
-	token, err := jwt.ParseWithClaims(
-		signedToken,
-		&JWTClaim{},
-		func(token *jwt.Token) (interface{}, error) {
-			return []byte(JwtKey), nil
-		},
-	)
 	if err != nil {
-		return
+		c.AbortWithStatus(http.StatusUnauthorized)
 	}
-	claims, ok := token.Claims.(*JWTClaim)
-	S = claims.Id
-	P = claims.Email
-	if !ok {
-		err = errors.New("couldn't parse claims")
-		return
+
+	// Decode/Validate it
+	// Parse takes the token string and a function for looking up the key. The latter is especially
+
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
+		return []byte(os.Getenv("SECRET")), nil
+	})
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+
+		// Check the expm
+		if float64(time.Now().Unix()) > claims["exp"].(float64) {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+
+		// Find the user with token sub
+		var user models.User
+		db.DBS.First(&user, claims["sub"])
+
+		if user.ID == 0 {
+			c.AbortWithStatus(http.StatusUnauthorized)
+		}
+
+		// Attach to request
+		c.Set("user", user.Email)
+		c.Set("id", user.ID)
+		// Continue
+		c.Next()
+		fmt.Println(claims["foo"], claims["nbf"])
+	} else {
+		c.AbortWithStatus(http.StatusUnauthorized)
 	}
-	if claims.ExpiresAt < time.Now().Local().Unix() {
-		err = errors.New("token expired")
-		return
-	}
-	return
+
 }
