@@ -1,42 +1,47 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/db"
 	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/models"
-	"gorm.io/gorm"
 )
 
 func CreateGroup(c *gin.Context) {
-
 	id := c.GetUint("id")
-
 	var body struct {
 		Name string
 	}
-	c.Bind(&body)
-
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Invalid JSON",
+			"data":   "null",
+		})
+		return
+	}
 	var Group = models.Group{
 		Name:    body.Name,
 		Adminid: id,
 	}
-	db.DBS.Create(&Group)
+	if err := db.DBS.Create(&Group).Error; err != nil {
+		c.JSON(http.StatusNotAcceptable, gin.H{
+			"status": false,
+			"error":  err.Error(),
+			"data":   "null",
+		})
+		return
+	}
+	c.JSON(http.StatusAccepted, gin.H{
+		"status":  true,
+		"massage": "created group",
+		"data":    Group,
+	})
 }
 func AddPeoples(c *gin.Context) {
-
-	useremail := c.GetString("user")
-	fmt.Println(useremail)
-	var UsersID int
-	err := db.DBS.Raw("select id from users where email=?", useremail).Scan(&UsersID)
-	if errors.Is(err.Error, gorm.ErrRecordNotFound) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "user coudnt find",
-		})
-	}
+	id := c.GetUint("id")
 	var groupmember models.Groupmember
 	fmt.Print(groupmember.Userid)
 	if err := c.BindJSON(&groupmember); err != nil {
@@ -62,10 +67,10 @@ func AddPeoples(c *gin.Context) {
 	}
 	var group []models.Group
 	for _, i := range group {
-		if i.Adminid != uint(UsersID) {
+		if i.Adminid != id {
 			c.JSON(http.StatusConflict, gin.H{
 				"status": false,
-				"error":  " you are not admin",
+				"error":  " you are not admin of the group",
 				"data":   "null",
 			})
 			return

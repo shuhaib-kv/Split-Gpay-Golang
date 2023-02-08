@@ -54,7 +54,7 @@ func UserAuth(c *gin.Context) {
 		c.Set("id", user.ID)
 		// Continue
 		c.Next()
-		fmt.Println(claims["foo"], claims["nbf"])
+		// fmt.Println(claims["foo"], claims["nbf"])
 	} else {
 		c.AbortWithStatus(http.StatusUnauthorized)
 	}
