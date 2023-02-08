@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -43,7 +42,6 @@ func CreateGroup(c *gin.Context) {
 func AddPeoples(c *gin.Context) {
 	id := c.GetUint("id")
 	var groupmember models.Groupmember
-	fmt.Print(groupmember.Userid)
 	if err := c.BindJSON(&groupmember); err != nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"status": false,
@@ -52,29 +50,38 @@ func AddPeoples(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Print(groupmember.Userid)
+	var group models.Group
+	if err := db.DBS.First(&group, "id=?", groupmember.Groupid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "Group Doesn't exist",
+			"error":   "error please enter valid information",
+		})
+		return
+	}
+	if err := db.DBS.First(&group, "adminid=?", id); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "You are not admin",
+			"error":   "error please enter valid information",
+		})
+		return
+	}
 
-	var user []models.User
-	for _, i := range user {
-		if i.ID != groupmember.Userid {
-			c.JSON(http.StatusConflict, gin.H{
-				"status": false,
-				"error":  " usernot found",
-				"data":   "null",
-			})
-			return
-		}
+	var user models.User
+	if err := db.DBS.First(&user, "id=?", groupmember.Userid); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "Cant find user",
+			"error":   "error please enter valid information",
+		})
+		return
 	}
-	var group []models.Group
-	for _, i := range group {
-		if i.Adminid != id {
-			c.JSON(http.StatusConflict, gin.H{
-				"status": false,
-				"error":  " you are not admin of the group",
-				"data":   "null",
-			})
-			return
-		}
-	}
+
 	db.DBS.Create(&groupmember)
+	c.JSON(http.StatusAccepted, gin.H{
+		"status":  true,
+		"message": "Added to success",
+		"data":    user.Firstname,
+	})
 }
