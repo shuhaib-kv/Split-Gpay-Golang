@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -101,7 +102,7 @@ func AddPeoples(c *gin.Context) {
 }
 func ViewMygroup(c *gin.Context) {
 	id := c.GetUint("id")
-	var group models.Group
+	var group []models.Group
 	if err := db.DBS.Find(&group, "adminid=?", id).Scan(&group); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
@@ -114,9 +115,11 @@ func ViewMygroup(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{
 		"status":  true,
 		"message": "Your Groups",
-		"data":    group.Name,
+		"data":    group,
 	})
 }
 func ViewMygroupMembers(c *gin.Context) {
+	id := c.GetUint("id")
 
+	fmt.Println(id)
 }

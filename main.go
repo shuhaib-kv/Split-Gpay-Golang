@@ -14,5 +14,5 @@ func init() {
 
 func main() {
 	routes.RoutesOfApi(g)
-	g.Run(":8082")
+	g.Run(":8083")
 }
