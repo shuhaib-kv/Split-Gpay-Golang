@@ -53,4 +53,7 @@ type Split struct {
 }
 type Payment struct {
 	gorm.Model
+	Expenseid uint `gorm:"not null"`
+	Splitid   uint `gorm:"not null"`
+	Amount    uint
 }

@@ -99,37 +99,47 @@ func AddPeoples(c *gin.Context) {
 		"data":    user.Firstname,
 	})
 }
+
+// done
 func ViewMygroup(c *gin.Context) {
 	id := c.GetUint("id")
-	var group []models.Group
-	var groupmember []models.Groupmember
-	if err := db.DBS.Find(&group, "id=?", id).Scan(&group); err.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "Group Doesn't exist",
-			"error":   "error please enter valid information",
-		})
-		return
-	}
 
-	for _, i := range group {
-		db.DBS.Find(&groupmember, "groupid=?", id).Scan(&group)
+	var groupmembers []models.Groupmember
+	db.DBS.Where("userid = ?", id).Find(&groupmembers)
+
+	if len(groupmembers) == 0 {
 		c.JSON(http.StatusAccepted, gin.H{
 			"status":  true,
-			"message": "Your Groups",
-			"data": gin.H{
-				"Group Name": i.Name,
-				"Group Id":   i.ID,
-			},
+			"message": "",
+			"data":    "you are not in any group",
 		})
+	} else {
+		for _, i := range groupmembers {
+			var group models.Group
+			db.DBS.Where("id = ?", i.Groupid).First(&group)
+			c.JSON(http.StatusAccepted, gin.H{
+				"status":  true,
+				"groupid": group.ID,
+				"data":    group.Name,
+			})
+		}
 	}
 
 }
 
 func ViewMygroupMembersbyid(c *gin.Context) {
 	var body struct {
-		gid uint
+		groupid uint
 	}
+	type GroupMember struct {
+		ID        uint
+		Firstname string
+		Lastname  string
+	}
+	var groupMembers []GroupMember
+
+	db.DBS.Table("groupmembers").Select("groupmembers.id, users.firstname, users.lastname").Joins("left join users on groupmembers.userid = users.id").Where("groupid = ?", body.groupid).Scan(&groupMembers)
+
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"status": false,
@@ -138,25 +148,11 @@ func ViewMygroupMembersbyid(c *gin.Context) {
 		})
 		return
 	}
-	var groupmember []models.Groupmember
-	if err := db.DBS.Find(&groupmember, "groupid=?", body.gid).Scan(&groupmember); err.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "Group Doesn't exist",
-			"error":   "error please enter valid information",
-		})
-		return
-	}
 
-	for _, i := range groupmember {
-		c.JSON(http.StatusAccepted, gin.H{
-			"status":  true,
-			"message": "Your Groups",
-			"data": gin.H{
-				" Name": i.Userid,
-				" Id":   i.Name,
-			},
-		})
-	}
+	c.JSON(http.StatusAccepted, gin.H{
+		"status":  true,
+		"message": "Your Groups",
+		"data":    groupMembers,
+	})
 
 }
