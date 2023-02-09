@@ -102,8 +102,8 @@ func AddPeoples(c *gin.Context) {
 }
 func ViewMygroup(c *gin.Context) {
 	id := c.GetUint("id")
-	var group []models.Group
-	if err := db.DBS.Find(&group, "adminid=?", id).Scan(&group); err.Error != nil {
+	var group []models.Groupmember
+	if err := db.DBS.Find(&group, "userid=?", id).Scan(&group); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
 			"message": "Group Doesn't exist",

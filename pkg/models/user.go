@@ -31,16 +31,18 @@ type Groupmember struct {
 
 type Expense struct {
 	gorm.Model
-	Groupid   uint      `gorm:"not null"`
-	Title     string    `gorm:"type:varchar(255);not null"`
-	Place     string    `gorm:"type:varchar(255);not null"`
-	Amount    float64   `gorm:"not null"`
-	CreatedAt time.Time `gorm:"default:now()"`
+	Groupid    uint `gorm:"not null"`
+	Splitowner uint
+	Title      string    `gorm:"type:varchar(255);not null"`
+	Place      string    `gorm:"type:varchar(255);not null"`
+	Amount     float64   `gorm:"not null"`
+	CreatedAt  time.Time `gorm:"default:now()"`
 }
 
-// type Split struct {
-// 	gorm.Model
-// 	ExpenseID uint    `gorm:"not null"`
-// 	UserID    uint    `gorm:"not null"`
-// 	Amount    float64 `gorm:"not null"`
-// }
+type Split struct {
+	gorm.Model
+	ExpenseID     uint    `gorm:"not null"`
+	UserID        uint    `gorm:"not null"`
+	Amount        float64 `gorm:"not null"`
+	Paymentstatue bool    `gorm:"not null"`
+}
