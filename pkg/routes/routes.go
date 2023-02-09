@@ -17,5 +17,6 @@ func RoutesOfApi(c *gin.Engine) {
 	c.POST("/user/group/split", middleware.UserAuth, controllers.CreateSplit)
 	c.GET("/view/by/id", middleware.UserAuth, controllers.ViewSplit)
 	c.GET("/view/my/id", middleware.UserAuth, controllers.ViewMysplit)
-
+	// c.GET("/view/my/id", middleware.UserAuth, controllers.ViewMysplit)
+	c.POST("/ggg", middleware.UserAuth, controllers.PaySplit)
 }

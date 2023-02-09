@@ -91,6 +91,7 @@ func AddPeoples(c *gin.Context) {
 	// 	})
 	// 	return
 	// }
+	groupmember.Name = user.Username
 	db.DBS.Create(&groupmember)
 	c.JSON(http.StatusAccepted, gin.H{
 		"status":  true,
@@ -100,9 +101,9 @@ func AddPeoples(c *gin.Context) {
 }
 func ViewMygroup(c *gin.Context) {
 	id := c.GetUint("id")
-	var group models.Group
+	var group []models.Group
 	var groupmember []models.Groupmember
-	if err := db.DBS.Find(&groupmember, "userid=?", id).Scan(&groupmember); err.Error != nil {
+	if err := db.DBS.Find(&group, "id=?", id).Scan(&group); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
 			"message": "Group Doesn't exist",
@@ -110,18 +111,52 @@ func ViewMygroup(c *gin.Context) {
 		})
 		return
 	}
-	for _, i := range groupmember {
-		db.DBS.Find(&group, "id=?", i.ID).Scan(&groupmember)
+
+	for _, i := range group {
+		db.DBS.Find(&groupmember, "groupid=?", id).Scan(&group)
 		c.JSON(http.StatusAccepted, gin.H{
 			"status":  true,
 			"message": "Your Groups",
 			"data": gin.H{
-				"Group Name": group.Name,
-				"Group Id":   group.ID,
+				"Group Name": i.Name,
+				"Group Id":   i.ID,
 			},
 		})
 	}
 
 }
+
 func ViewMygroupMembersbyid(c *gin.Context) {
+	var body struct {
+		gid uint
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Invalid JSON",
+			"data":   "null",
+		})
+		return
+	}
+	var groupmember []models.Groupmember
+	if err := db.DBS.Find(&groupmember, "groupid=?", body.gid).Scan(&groupmember); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "Group Doesn't exist",
+			"error":   "error please enter valid information",
+		})
+		return
+	}
+
+	for _, i := range groupmember {
+		c.JSON(http.StatusAccepted, gin.H{
+			"status":  true,
+			"message": "Your Groups",
+			"data": gin.H{
+				" Name": i.Userid,
+				" Id":   i.Name,
+			},
+		})
+	}
+
 }

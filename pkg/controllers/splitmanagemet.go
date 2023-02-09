@@ -44,10 +44,6 @@ func ViewSplit(c *gin.Context) {
 			},
 		})
 	}
-
-	// c.JSON(http.StatusFound, gin.H{
-	// 	"data": expense,
-	// })
 	return
 }
 func ViewMysplit(c *gin.Context) {

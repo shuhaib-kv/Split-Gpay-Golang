@@ -27,6 +27,7 @@ type Groupmember struct {
 	gorm.Model
 	Groupid uint `gorm:"not null"`
 	Userid  uint `gorm:"not null"`
+	Name    string
 }
 
 type Expense struct {
@@ -49,4 +50,7 @@ type Split struct {
 	Paymentstatus bool    `gorm:"not null"`
 	Paymentid     uint
 	Splitstatus   bool
+}
+type Payment struct {
+	gorm.Model
 }
