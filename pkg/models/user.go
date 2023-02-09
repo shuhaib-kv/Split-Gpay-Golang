@@ -33,9 +33,10 @@ type Expense struct {
 	gorm.Model
 	Groupid    uint `gorm:"not null"`
 	Splitowner uint
-	Title      string    `gorm:"type:varchar(255);not null"`
-	Place      string    `gorm:"type:varchar(255);not null"`
-	Amount     float64   `gorm:"not null"`
+	Title      string  `gorm:"type:varchar(255);not null"`
+	Place      string  `gorm:"type:varchar(255);not null"`
+	Amount     float64 `gorm:"not null"`
+	status     bool
 	CreatedAt  time.Time `gorm:"default:now()"`
 }
 

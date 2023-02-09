@@ -31,7 +31,6 @@ func ViewSplit(c *gin.Context) {
 		return
 	}
 	db.DBS.Find(&split, "expenseid=?", expense.ID).Scan(&split)
-
 	for _, i := range split {
 		c.JSON(200, gin.H{
 			"status":  true,
@@ -50,4 +49,31 @@ func ViewSplit(c *gin.Context) {
 	// 	"data": expense,
 	// })
 	return
+}
+func ViewMysplit(c *gin.Context) {
+	id := c.GetUint("id")
+	var gid struct {
+		groupid uint
+	}
+	if err := c.BindJSON(&gid); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Invalid JSON",
+			"data":   "null",
+		})
+		return
+	}
+	var expense []models.Expense
+	db.DBS.Find(&expense, "groupid=? and spliowner=? ", gid.groupid, id).Scan(&expense)
+	for _, i := range expense {
+		c.JSON(200, gin.H{
+			"status":  true,
+			"message": "Your Groups",
+			"data": gin.H{
+				"expenceid": i.ID,
+				"tittle":    i.Title,
+				"amount ":   i.Amount,
+			},
+		})
+	}
 }
