@@ -31,7 +31,6 @@ func ViewSplit(c *gin.Context) {
 		return
 	}
 	db.DBS.Find(&split, "expenseid=?", expense.ID).Scan(&split)
-
 	splitData := make([]map[string]interface{}, len(split))
 	for i, s := range split {
 		splitData[i] = map[string]interface{}{
