@@ -19,4 +19,10 @@ func RoutesOfApi(c *gin.Engine) {
 	c.GET("/view/by/id", middleware.UserAuth, controllers.ViewSplit)
 	c.POST("/ggg", middleware.UserAuth, controllers.PaySplit)
 
+	c.GET("/not", middleware.UserAuth, controllers.ViewWhoNotPaid)
+
+	c.GET("/paid", middleware.UserAuth, controllers.ViewWhoPaid)
+
+	// c.GET("/view/by/id", middleware.UserAuth, controllers.ViewSplit)
+
 }

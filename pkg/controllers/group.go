@@ -127,20 +127,13 @@ func ViewMygroup(c *gin.Context) {
 
 }
 
+//not done
+
 func ViewMygroupMembersbyid(c *gin.Context) {
 	var body struct {
-		groupid uint
+		id uint
 	}
-	type GroupMember struct {
-		ID        uint
-		Firstname string
-		Lastname  string
-	}
-	var groupMembers []GroupMember
-
-	db.DBS.Table("groupmembers").Select("groupmembers.id, users.firstname, users.lastname").Joins("left join users on groupmembers.userid = users.id").Where("groupid = ?", body.groupid).Scan(&groupMembers)
-
-	if err := c.BindJSON(&body); err != nil {
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"status": false,
 			"error":  "Invalid JSON",
@@ -148,11 +141,15 @@ func ViewMygroupMembersbyid(c *gin.Context) {
 		})
 		return
 	}
+	var groupmembers []models.Groupmember
+	db.DBS.Where("groupid = ?", body.id).Find(&groupmembers)
 
-	c.JSON(http.StatusAccepted, gin.H{
-		"status":  true,
-		"message": "Your Groups",
-		"data":    groupMembers,
-	})
+	for _, i := range groupmembers {
+		c.JSON(http.StatusAccepted, gin.H{
+			"status": true,
+			"userid": i.Userid,
+			"data":   i.Name,
+		})
+	}
 
 }
