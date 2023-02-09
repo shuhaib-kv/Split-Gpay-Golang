@@ -57,7 +57,7 @@ func AddPeoples(c *gin.Context) {
 		})
 		return
 	}
-	var groups []models.Groupmember
+	// var groups []models.Groupmember
 	var group models.Group
 	if err := db.DBS.First(&group, "id=?", groupmember.Groupid); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -85,14 +85,14 @@ func AddPeoples(c *gin.Context) {
 		})
 		return
 	}
-	if err := db.DBS.First(&groups, "id=? AND usersid=?", groupmember.Groupid, groupmember.Userid); err.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  false,
-			"message": "user already in the group",
-			"error":   "error please ",
-		})
-		return
-	}
+	// if err := db.DBS.First(&groups, "id=? and userid=?", groupmember.Groupid, groupmember.Userid); err.Error != nil {
+	// 	c.JSON(http.StatusNotFound, gin.H{
+	// 		"status":  false,
+	// 		"message": "user already in the group",
+	// 		"error":   "error please ",
+	// 	})
+	// 	return
+	// }
 	db.DBS.Create(&groupmember)
 	c.JSON(http.StatusAccepted, gin.H{
 		"status":  true,
@@ -102,8 +102,8 @@ func AddPeoples(c *gin.Context) {
 }
 func ViewMygroup(c *gin.Context) {
 	id := c.GetUint("id")
-	var group []models.Groupmember
-	if err := db.DBS.Find(&group, "userid=?", id).Scan(&group); err.Error != nil {
+	var groupmember []models.Groupmember
+	if err := db.DBS.Find(&groupmember, "userid=?", id).Scan(&groupmember); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
 			"message": "Group Doesn't exist",
@@ -111,15 +111,16 @@ func ViewMygroup(c *gin.Context) {
 		})
 		return
 	}
-
 	c.JSON(http.StatusAccepted, gin.H{
 		"status":  true,
 		"message": "Your Groups",
-		"data":    group,
+		"data":    groupmember,
 	})
 }
-func ViewMygroupMembers(c *gin.Context) {
+func ViewMygroupMembersbyid(c *gin.Context) {
 	id := c.GetUint("id")
+	var gid uint
+	c.BindJSON(&gid)
 
 	fmt.Println(id)
 }

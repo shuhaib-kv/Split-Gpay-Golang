@@ -42,7 +42,7 @@ func CreateSplit(c *gin.Context) {
 	var sum uint
 	for _, userID := range expense.Users {
 		var groupmember models.Groupmember
-		if err := db.DBS.Where("groupid = ? AND userid=?", userID.ID, expense.GroupID).First(&groupmember).Error; err != nil {
+		if err := db.DBS.Where("groupid = ? AND userid=?", expense.GroupID, userID.ID).First(&groupmember).Error; err != nil {
 
 			c.JSON(400, gin.H{
 				"error": "not a group member",
@@ -72,9 +72,9 @@ func CreateSplit(c *gin.Context) {
 	db.DBS.Create(&expensedb)
 	for _, i := range expense.Users {
 		var split = models.Split{
-			UserID:        i.ID,
+			Userid:        i.ID,
 			Amount:        float64(i.Amount),
-			ExpenseID:     expensedb.ID,
+			Expenseid:     expensedb.ID,
 			Paymentstatus: false,
 			Splitstatus:   false,
 		}

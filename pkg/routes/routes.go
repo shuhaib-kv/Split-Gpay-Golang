@@ -15,5 +15,5 @@ func RoutesOfApi(c *gin.Engine) {
 	c.GET("/user/group/view", middleware.UserAuth, controllers.ViewMygroup)
 	c.GET("/user/group/view/users", middleware.UserAuth, controllers.ViewMygroup)
 	c.POST("/user/group/split", middleware.UserAuth, controllers.CreateSplit)
-
+	c.GET("/view/e/g", middleware.UserAuth, controllers.ViewsplitDetails)
 }
