@@ -20,5 +20,7 @@ func ConnectTODatabase() {
 		&models.User{},
 		&models.Group{},
 		&models.Groupmember{},
+		&models.Expense{},
+		&models.Split{},
 	)
 }

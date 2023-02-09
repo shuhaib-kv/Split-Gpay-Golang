@@ -33,9 +33,8 @@ type body struct {
 }
 
 func CreateSplit(c *gin.Context) {
-
+	id := c.GetUint("id")
 	var expense body
-
 	if err := c.ShouldBindJSON(&expense); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -63,6 +62,25 @@ func CreateSplit(c *gin.Context) {
 		return
 
 	}
+	var expensedb = models.Expense{
+		Groupid:    expense.GroupID,
+		Splitowner: id,
+		Title:      expense.Title,
+		Place:      expense.Place,
+		Amount:     expense.Amount,
+	}
+	db.DBS.Create(&expensedb)
+	for _, i := range expense.Users {
+		var split = models.Split{
+			UserID:        i.ID,
+			Amount:        float64(i.Amount),
+			ExpenseID:     expensedb.ID,
+			Paymentstatus: false,
+			Splitstatus:   false,
+		}
+		db.DBS.Create(&split)
+	}
+
 	c.JSON(200, gin.H{
 		"data": expense,
 		"sum":  sum,

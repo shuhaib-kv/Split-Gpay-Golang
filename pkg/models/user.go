@@ -44,5 +44,6 @@ type Split struct {
 	ExpenseID     uint    `gorm:"not null"`
 	UserID        uint    `gorm:"not null"`
 	Amount        float64 `gorm:"not null"`
-	Paymentstatue bool    `gorm:"not null"`
+	Paymentstatus bool    `gorm:"not null"`
+	Splitstatus   bool
 }
