@@ -1,75 +1,53 @@
 package controllers
 
-// func ViewSplitExpencesInGroup(c *gin.Context) {
-// 	// id := c.GetUint("id")
-// 	var body struct {
-// 		groupid uint
-// 	}
-// 	c.BindJSON(&body)
-// 	var expense []models.Expense
+import (
+	"net/http"
 
-// 	if err := db.DBS.Find(&expense, "groupid=?", body.groupid).Scan(&expense); err.Error != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{
-// 			"status":  false,
-// 			"message": "Group Doesn't exist",
-// 			"error":   "error please enter valid information",
-// 		})
-// 		return
-// 	}
-// 	for _, i := range expense {
+	"github.com/gin-gonic/gin"
+	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/db"
+	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/models"
+)
 
-// 		c.JSON(200, gin.H{
-// 			"wow": i.Splitowner,
-// 		})
-// 	}
-// 	c.JSON(200, gin.H{
-// 		"wow": expense,
-// 	})
+func ViewSplit(c *gin.Context) {
+	var body struct {
+		expenceid uint
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Invalid JSON",
+			"data":   "null",
+		})
+		return
+	}
+	var expense models.Expense
+	var split []models.Split
+	if err := db.DBS.First(&expense, "id=1"); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "Group Doesn't exist",
+			"error":   "error please enter valid information",
+		})
+		return
+	}
+	db.DBS.Find(&split, "expenseid=?", expense.ID).Scan(&split)
 
-// }
-// func CloseAllSplit(c *gin.Context) {
+	for _, i := range split {
+		c.JSON(200, gin.H{
+			"status":  true,
+			"message": "Your Groups",
+			"data": gin.H{
+				"Group id":       i.ID,
+				"Group name":     i.Username,
+				"amount ":        i.Amount,
+				"payment status": i.Paymentstatus,
+				"split status":   i.Splitstatus,
+			},
+		})
+	}
 
-// }
-// func CloseSplitByPerson(c *gin.Context) {}
-// func PaySplit(c *gin.Context)           {}
-// func ViewsplitDetails(c *gin.Context) {
-// 	var body struct {
-// 		expid   uint
-// 		groupid uint
-// 	}
-// 	if err := c.BindJSON(&body); err != nil {
-// 		c.JSON(http.StatusConflict, gin.H{
-// 			"status": false,
-// 			"error":  "Invalid JSON",
-// 			"data":   "null",
-// 		})
-// 		return
-// 	}
-
-// 	var expense models.Expense
-// 	var split models.Split
-// 	if err := db.DBS.Find(&expense, "id=?", body.expid).Scan(&expense); err.Error != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{
-// 			"status":  false,
-// 			"message": "Group Doesn't exist",
-// 			"error":   "error please enter valid information",
-// 		})
-// 		return
-// 	}
-// 	if err := db.DBS.Find(&split, "expenseid=?", body.expid).Scan(&split); err.Error != nil {
-// 		c.JSON(http.StatusNotFound, gin.H{
-// 			"status":  false,
-// 			"message": "Group Doesn't exist",
-// 			"error":   "error please enter valid information",
-// 		})
-// 		return
-// 	}
-// 	c.JSON(200, gin.H{
-
-// 		"data": split,
-// 	})
-// }
-
-// func ViewNotPaid(c *gin.Context)         {}
-// func ViewPaid(c *gin.Context)            {}
-// func ViewAllsplitInGroup(c *gin.Context) {}
+	// c.JSON(http.StatusFound, gin.H{
+	// 	"data": expense,
+	// })
+	return
+}

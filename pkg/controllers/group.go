@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -116,15 +115,13 @@ func ViewMygroup(c *gin.Context) {
 		c.JSON(http.StatusAccepted, gin.H{
 			"status":  true,
 			"message": "Your Groups",
-			"data":    group,
+			"data": gin.H{
+				"Group Name": group.Name,
+				"Group Id":   group.ID,
+			},
 		})
 	}
 
 }
 func ViewMygroupMembersbyid(c *gin.Context) {
-	id := c.GetUint("id")
-	var gid uint
-	c.BindJSON(&gid)
-
-	fmt.Println(id)
 }
