@@ -64,9 +64,11 @@ func ViewMysplit(c *gin.Context) {
 		return
 	}
 
+	// Retrieve the expenses from the database that match the user ID and group ID
 	var expenses []models.Expense
 	db.DBS.Find(&expenses, "groupid = ? and splitowner = ?", groupID.GroupID, userID).Scan(&expenses)
 
+	// If there are no matching expenses, return a 404 status code
 	if len(expenses) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status": false,
@@ -76,6 +78,7 @@ func ViewMysplit(c *gin.Context) {
 		return
 	}
 
+	// Build the response data
 	var responseData []gin.H
 	for _, expense := range expenses {
 		// Retrieve the splits for each expense
@@ -129,7 +132,8 @@ func ViewWhoNotPaid(c *gin.Context) {
 	for i, s := range split {
 		splitData[i] = map[string]interface{}{
 			"split id":     s.ID,
-			"user name":    s.Username,
+			"userid":       s.Userid,
+			"split owner":  s.Username,
 			"amount":       s.Amount,
 			"split status": s.Splitstatus,
 		}
@@ -169,7 +173,8 @@ func ViewWhoPaid(c *gin.Context) {
 	for i, s := range split {
 		splitData[i] = map[string]interface{}{
 			"split id":     s.ID,
-			"user name":    s.Username,
+			"userid":       s.Userid,
+			"split owner":  s.Username,
 			"amount":       s.Amount,
 			"split status": s.Splitstatus,
 		}

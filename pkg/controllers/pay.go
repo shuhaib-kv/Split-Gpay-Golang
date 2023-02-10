@@ -75,7 +75,28 @@ func PaySplit(c *gin.Context) {
 
 	// 	Splitstatus: true,
 	// }
-	db.DBS.Model(&Split).Update("splitstatus=?", true).Where("splits.id=?", body.Splitid)
-	db.DBS.Model(&Split).Update("paymentid=?", pay.ID).Where("splits.id=?", body.Splitid)
+	var done = models.Split{
+
+		Paymentid:   pay.ID,
+		Splitstatus: true,
+	}
+	var doneex = models.Expense{
+
+		Status: true,
+	}
+	db.DBS.Model(&Split).Where("splits.id=?", pay.Splitid).Updates(&done)
+	var sp []models.Split
+	db.DBS.Raw("select * from splits where splits.expenseid=?", body.Expenceid).Scan(&sp)
+	var flag int
+	flag = 0
+	for _, i := range sp {
+		if i.Splitstatus == false {
+			flag = 1
+		}
+	}
+	if flag != 1 {
+		db.DBS.Model(&expence).Where("id=?", body.Expenceid).Updates(&doneex)
+
+	}
 
 }
