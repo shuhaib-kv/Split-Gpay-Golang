@@ -34,11 +34,10 @@ func ViewSplit(c *gin.Context) {
 	splitData := make([]map[string]interface{}, len(split))
 	for i, s := range split {
 		splitData[i] = map[string]interface{}{
-			"split id":       s.ID,
-			"user name":      s.Username,
-			"amount":         s.Amount,
-			"payment status": s.Paymentstatus,
-			"split status":   s.Splitstatus,
+			"split id":     s.ID,
+			"user name":    s.Username,
+			"amount":       s.Amount,
+			"split status": s.Splitstatus,
 		}
 	}
 
@@ -50,11 +49,13 @@ func ViewSplit(c *gin.Context) {
 	return
 }
 func ViewMysplit(c *gin.Context) {
-	id := c.GetUint("id")
-	var gid struct {
-		groupid uint
+	userID := c.GetUint("id")
+
+	// Get the group ID from the JSON request body
+	var groupID struct {
+		GroupID int
 	}
-	if err := c.BindJSON(&gid); err != nil {
+	if err := c.BindJSON(&groupID); err != nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"status": false,
 			"error":  "Invalid JSON",
@@ -62,19 +63,75 @@ func ViewMysplit(c *gin.Context) {
 		})
 		return
 	}
-	var expense []models.Expense
-	db.DBS.Find(&expense, "groupid=? and spliowner=? ", gid.groupid, id).Scan(&expense)
-	for _, i := range expense {
-		c.JSON(200, gin.H{
-			"status":  true,
-			"message": "Your Groups",
-			"data": gin.H{
-				"expenceid": i.ID,
-				"tittle":    i.Title,
-				"amount ":   i.Amount,
-			},
+
+	// Retrieve the expenses from the database that match the user ID and group ID
+	var expenses []models.Expense
+	db.DBS.Find(&expenses, "groupid = ? and splitowner = ?", groupID.GroupID, userID).Scan(&expenses)
+
+	// If there are no matching expenses, return a 404 status code
+	if len(expenses) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": false,
+			"error":  "No matching expenses found",
+			"data":   "null",
 		})
+		return
 	}
+
+	// Build the response data
+	var responseData []gin.H
+	for _, expense := range expenses {
+		// Retrieve the splits for each expense
+		var splits []models.Split
+		db.DBS.Find(&splits, "expenseid = ?", expense.ID).Scan(&splits)
+
+		// Build the expense data
+		expenseData := gin.H{
+			"expenseID": expense.ID,
+			"title":     expense.Title,
+			"amount":    expense.Amount,
+			"splits":    splits,
+			"status":    expense.Status,
+			"createdAt": expense.CreatedAt,
+		}
+		responseData = append(responseData, expenseData)
+	}
+
+	// Return the response data
+	c.JSON(200, gin.H{
+		"status":  true,
+		"message": "Split details retrieved successfully",
+		"data":    responseData,
+	})
+	// var body struct {
+	// 	Groupid uint
+	// }
+	// if err := c.BindJSON(&body); err != nil {
+	// 	c.JSON(http.StatusConflict, gin.H{
+	// 		"status": false,
+	// 		"error":  "Invalid JSON",
+	// 		"data":   "null",
+	// 	})
+	// 	return
+	// }
+	// id := c.GetUint("id")
+	// var expense []models.Expense
+	// db.DBS.Find(&expense, "groupid=? and splitowner=? ", body.Groupid, id).Scan(&expense)
+	// for _, i := range expense {
+	// 	c.JSON(200, gin.H{
+	// 		"status":  true,
+	// 		"message": "Your Groups",
+	// 		"data": gin.H{
+	// 			"expenceid": i.ID,
+	// 			"tittle":    i.Title,
+	// 			"amount ":   i.Amount,
+	// 		},
+	// 	})
+	// 	return
+	// }
+	// c.JSON(http.StatusNotFound, gin.H{
+	// 	"": "you dont have any split",
+	// })
 }
 func ViewWhoNotPaid(c *gin.Context) {
 	var body struct {
@@ -98,15 +155,14 @@ func ViewWhoNotPaid(c *gin.Context) {
 		})
 		return
 	}
-	db.DBS.Find(&split, "expenseid=? and paymentstatus=?", expense.ID, false).Scan(&split)
+	db.DBS.Find(&split, "expenseid=? and splitstatus=?", expense.ID, false).Scan(&split)
 	splitData := make([]map[string]interface{}, len(split))
 	for i, s := range split {
 		splitData[i] = map[string]interface{}{
-			"split id":       s.ID,
-			"user name":      s.Username,
-			"amount":         s.Amount,
-			"payment status": s.Paymentstatus,
-			"split status":   s.Splitstatus,
+			"split id":     s.ID,
+			"user name":    s.Username,
+			"amount":       s.Amount,
+			"split status": s.Splitstatus,
 		}
 	}
 	c.JSON(200, gin.H{
@@ -138,16 +194,15 @@ func ViewWhoPaid(c *gin.Context) {
 		})
 		return
 	}
-	db.DBS.Find(&split, "expenseid=? and paymentstatus=?", expense.ID, true).Scan(&split)
+	db.DBS.Find(&split, "expenseid=? and splitstatus=?", expense.ID, true).Scan(&split)
 
 	splitData := make([]map[string]interface{}, len(split))
 	for i, s := range split {
 		splitData[i] = map[string]interface{}{
-			"split id":       s.ID,
-			"user name":      s.Username,
-			"amount":         s.Amount,
-			"payment status": s.Paymentstatus,
-			"split status":   s.Splitstatus,
+			"split id":     s.ID,
+			"user name":    s.Username,
+			"amount":       s.Amount,
+			"split status": s.Splitstatus,
 		}
 	}
 	c.JSON(200, gin.H{

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/db"
@@ -60,15 +61,16 @@ func AddPeoples(c *gin.Context) {
 	if err := db.DBS.First(&group, "id=?", groupmember.Groupid); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
-			"message": "Group Doesn't exist",
+			"message": "Group not found",
 			"error":   "error please enter valid information",
 		})
 		return
 	}
-	if err := db.DBS.First(&group, "adminid=?", id); err.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{
+
+	if group.Adminid != id {
+		c.JSON(http.StatusForbidden, gin.H{
 			"status":  false,
-			"message": "You are not admin",
+			"message": "You are not the admin of this group",
 			"error":   "error please enter valid information",
 		})
 		return
@@ -78,78 +80,110 @@ func AddPeoples(c *gin.Context) {
 	if err := db.DBS.First(&user, "id=?", groupmember.Userid); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
-			"message": "Cant find user",
+			"message": "User not found",
 			"error":   "error please enter valid information",
 		})
 		return
 	}
-	// if err := db.DBS.First(&groups, "id=? and userid=?", groupmember.Groupid, groupmember.Userid); err.Error != nil {
-	// 	c.JSON(http.StatusNotFound, gin.H{
-	// 		"status":  false,
-	// 		"message": "user already in the group",
-	// 		"error":   "error please ",
-	// 	})
-	// 	return
-	// }
+
+	var isMember models.Groupmember
+	if err := db.DBS.First(&isMember, "groupid=? and userid=?", groupmember.Groupid, groupmember.Userid).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "User already in the group",
+			"error":   "error please enter valid information",
+		})
+		return
+	}
+
 	groupmember.Name = user.Username
 	db.DBS.Create(&groupmember)
-	c.JSON(http.StatusAccepted, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"status":  true,
-		"message": "Added to success",
+		"message": "User added to the group successfully",
 		"data":    user.Firstname,
 	})
 }
 
-// done
 func ViewMygroup(c *gin.Context) {
+
 	id := c.GetUint("id")
 
-	var groupmembers []models.Groupmember
-	db.DBS.Where("userid = ?", id).Find(&groupmembers)
+	var groupMembers []models.Groupmember
+	db.DBS.Where("userid = ?", id).Find(&groupMembers)
 
-	if len(groupmembers) == 0 {
-		c.JSON(http.StatusAccepted, gin.H{
+	if len(groupMembers) == 0 {
+		c.JSON(http.StatusOK, gin.H{
 			"status":  true,
-			"message": "",
-			"data":    "you are not in any group",
+			"message": "You are not in any group",
+			"data":    nil,
 		})
 	} else {
-		for _, i := range groupmembers {
-			var group models.Group
-			db.DBS.Where("id = ?", i.Groupid).First(&group)
-			c.JSON(http.StatusAccepted, gin.H{
-				"status":  true,
-				"groupid": group.ID,
-				"data":    group.Name,
-			})
-		}
-	}
+		var groups []models.Group
+		groupIDs := make([]uint, len(groupMembers))
 
+		for i, groupMember := range groupMembers {
+			groupIDs[i] = groupMember.Groupid
+		}
+
+		db.DBS.Where("id IN (?)", groupIDs).Find(&groups)
+
+		groupData := make([]map[string]interface{}, len(groups))
+		for i, group := range groups {
+			groupData[i] = map[string]interface{}{
+				"groupid": group.ID,
+				"name":    group.Name,
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status":  true,
+			"message": "Groups retrieved successfully",
+			"data":    groupData,
+		})
+	}
 }
 
-//not done
-
-func ViewMygroupMembersbyid(c *gin.Context) {
-	var body struct {
-		id uint
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusConflict, gin.H{
+func ViewMembers(c *gin.Context) {
+	groupID := c.Param("id")
+	groupIDUint, err := strconv.ParseUint(groupID, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
 			"status": false,
-			"error":  "Invalid JSON",
-			"data":   "null",
+			"error":  "Invalid group ID",
+			"data":   nil,
 		})
 		return
 	}
-	var groupmembers []models.Groupmember
-	db.DBS.Where("groupid = ?", body.id).Find(&groupmembers)
 
-	for _, i := range groupmembers {
-		c.JSON(http.StatusAccepted, gin.H{
-			"status": true,
-			"userid": i.Userid,
-			"data":   i.Name,
+	var groupMembers []models.Groupmember
+	if err := db.DBS.Where("groupid = ?", groupIDUint).Find(&groupMembers).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "Error fetching group members",
+			"error":   err.Error(),
 		})
+		return
 	}
 
+	var members []string
+	for _, member := range groupMembers {
+		var user models.User
+		if err := db.DBS.Where("id = ?", member.Userid).First(&user).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status":  false,
+				"message": "Error fetching user",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		members = append(members, user.Username)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Group members",
+		"data":    members,
+	})
 }

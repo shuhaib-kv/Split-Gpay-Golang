@@ -75,12 +75,11 @@ func CreateSplit(c *gin.Context) {
 	for _, i := range expense.Users {
 		db.DBS.Where("id = ? ", i.ID).Find(&user)
 		var split = models.Split{
-			Userid:        i.ID,
-			Username:      user.Username,
-			Amount:        float64(i.Amount),
-			Expenseid:     expensedb.ID,
-			Paymentstatus: false,
-			Splitstatus:   false,
+			Userid:      i.ID,
+			Username:    user.Username,
+			Amount:      float64(i.Amount),
+			Expenseid:   expensedb.ID,
+			Splitstatus: false,
 		}
 		db.DBS.Create(&split)
 
