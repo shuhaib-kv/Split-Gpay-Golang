@@ -16,15 +16,16 @@ func RoutesOfApi(c *gin.Engine) {
 	c.GET("/user/group/view", middleware.UserAuth, controllers.ViewMygroup)    //done
 	c.POST("/user/group/split", middleware.UserAuth, controllers.CreateSplit)  //done
 
-	c.GET("/user/view/expenses", middleware.UserAuth, controllers.ViewSplit)
-	c.GET("/user/view/mysplit", middleware.UserAuth, controllers.ViewMysplit)
+	c.GET("/user/view/expenses", middleware.UserAuth, controllers.ViewSplit)        //done
+	c.GET("/user/view/mysplit", middleware.UserAuth, controllers.ViewMysplit)       //done
 	c.GET("/user/group/view/members", middleware.UserAuth, controllers.ViewMembers) //done
 	c.GET("/user/view/notpaid", middleware.UserAuth, controllers.ViewWhoNotPaid)    //done
 	c.GET("/user/view/paid", middleware.UserAuth, controllers.ViewWhoPaid)          //done
 
-	c.POST("/user/pay/split", middleware.UserAuth, controllers.PaySplit)
+	c.POST("/user/pay/split", middleware.UserAuth, controllers.PaySplit) //done
 	//close split
-	c.PATCH("/user/group/split/close/individual")
+	c.PATCH("/user/group/split/close", middleware.UserAuth, controllers.CloseSplit)
+	c.PATCH("/user/group/expense/close", middleware.UserAuth, controllers.CloseExpense)
 
 	c.GET("/user/view/expense", middleware.UserAuth, controllers.ViewExpense)                     //done
 	c.GET("/user/view/expense/closed/not", middleware.UserAuth, controllers.ViewExpenseNotClosed) //done
