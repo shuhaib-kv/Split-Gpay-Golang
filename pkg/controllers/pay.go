@@ -1,6 +1,10 @@
 package controllers
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 func PaySplit(c *gin.Context) {
 	var body struct {
@@ -8,6 +12,17 @@ func PaySplit(c *gin.Context) {
 		expenceid uint
 		splitid   uint
 	}
-	c.BindJSON(&body)
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Invalid JSON",
+			"data":   "null",
+		})
+		return
+	}
+
+	c.JSON(http.StatusFound, gin.H{
+		"": "",
+	})
 
 }
