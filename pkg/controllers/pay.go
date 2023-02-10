@@ -10,9 +10,9 @@ import (
 
 func PaySplit(c *gin.Context) {
 	var body struct {
-		amount    uint
-		expenceid uint
-		splitid   uint
+		Amount    uint `json:"amount"`
+		Expenceid uint `json:"expenceid"`
+		Splitid   uint `json:"splitid"`
 	}
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(http.StatusConflict, gin.H{
@@ -25,8 +25,8 @@ func PaySplit(c *gin.Context) {
 	var expence models.Expense
 	var Split models.Split
 
-	db.DBS.Find(&expence, "id=?", body.expenceid).Scan(&expence)
-	db.DBS.Find(&Split, "id=? expenseid", body.expenceid).Scan(&Split)
+	db.DBS.Find(&expence, "id=?", body.Expenceid).Scan(&expence)
+	db.DBS.Find(&Split, "expenseid=? ", body.Expenceid).Scan(&Split)
 	if expence.Status == true {
 		c.JSON(http.StatusConflict, gin.H{
 			"status": false,
@@ -51,10 +51,38 @@ func PaySplit(c *gin.Context) {
 		})
 		return
 	}
-
+	if Split.Amount != float64(body.Amount) {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Amount doesnt match",
+			"data":   Split.Paymentstatus,
+		})
+		return
+	}
+	var pay = models.Payment{
+		Expenseid: body.Expenceid,
+		Splitid:   body.Splitid,
+		Amount:    body.Amount,
+	}
+	db.DBS.Create(&pay)
 	c.JSON(http.StatusFound, gin.H{
-		"status": false,
+		"status": true,
 		"error":  "Your paid the split",
-		"data":   Split.Paymentstatus})
+		"data":   pay})
+	var done = models.Split{
+		Paymentstatus: true,
+		Paymentid:     pay.ID,
+		Splitstatus:   true,
+	}
+	db.DBS.Model(&Split).Where("splits.id=?", pay.Splitid).Updates(&done)
+	db.DBS.Raw("select *  from split where expenseid=? and paymentstatus=?", body.Expenceid, true)
+	var splitAmount float64
+
+	db.DBS.Table("splits").Where("expenseid = ?", body.Expenceid).Select("SUM(amount)").Row().Scan(&splitAmount)
+
+	difference := expence.Amount - splitAmount
+	if difference != 0 {
+
+	}
 
 }

@@ -13,16 +13,10 @@ func RoutesOfApi(c *gin.Engine) {
 	c.POST("/user/group/create", middleware.UserAuth, controllers.CreateGroup)
 	c.POST("/user/group/add", middleware.UserAuth, controllers.AddPeoples)
 	c.GET("/user/group/view", middleware.UserAuth, controllers.ViewMygroup)
-	c.GET("/user/group/view/m", middleware.UserAuth, controllers.ViewMygroupMembersbyid)
-
+	c.GET("/user/group/view/mygroups", middleware.UserAuth, controllers.ViewMygroupMembersbyid)
 	c.POST("/user/group/split", middleware.UserAuth, controllers.CreateSplit)
-	c.GET("/view/by/id", middleware.UserAuth, controllers.ViewSplit)
-	c.POST("/ggg", middleware.UserAuth, controllers.PaySplit)
-
-	c.GET("/not", middleware.UserAuth, controllers.ViewWhoNotPaid)
-
-	c.GET("/paid", middleware.UserAuth, controllers.ViewWhoPaid)
-
-	// c.GET("/view/by/id", middleware.UserAuth, controllers.ViewSplit)
-
+	c.GET("/user/view/split", middleware.UserAuth, controllers.ViewSplit)
+	c.GET("/user/view/notpaid", middleware.UserAuth, controllers.ViewWhoNotPaid)
+	c.GET("/user/view/paid", middleware.UserAuth, controllers.ViewWhoPaid)
+	c.POST("/user/pay/split", middleware.UserAuth, controllers.PaySplit)
 }
