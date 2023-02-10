@@ -37,7 +37,7 @@ type Expense struct {
 	Title      string  `gorm:"type:varchar(255);not null"`
 	Place      string  `gorm:"type:varchar(255);not null"`
 	Amount     float64 `gorm:"not null"`
-	status     bool
+	Status     bool
 	CreatedAt  time.Time `gorm:"default:now()"`
 }
 
