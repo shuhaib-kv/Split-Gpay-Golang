@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shuhaib-kv/Split-Gpay-Golang.git/pkg/db"
@@ -145,19 +144,19 @@ func ViewMygroup(c *gin.Context) {
 }
 
 func ViewMembers(c *gin.Context) {
-	groupID := c.Param("id")
-	groupIDUint, err := strconv.ParseUint(groupID, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+	var body struct {
+		Group uint `json:"group"`
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
 			"status": false,
-			"error":  "Invalid group ID",
-			"data":   nil,
+			"error":  "Invalid JSON",
+			"data":   "null",
 		})
 		return
 	}
-
 	var groupMembers []models.Groupmember
-	if err := db.DBS.Where("groupid = ?", groupIDUint).Find(&groupMembers).Error; err != nil {
+	if err := db.DBS.Where("groupid = ?", body.Group).Find(&groupMembers).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
 			"message": "Error fetching group members",
