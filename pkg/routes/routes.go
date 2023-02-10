@@ -23,7 +23,7 @@ func RoutesOfApi(c *gin.Engine) {
 	c.GET("/user/view/paid", middleware.UserAuth, controllers.ViewWhoPaid)          //done
 
 	c.POST("/user/pay/split", middleware.UserAuth, controllers.PaySplit) //done
-	//close split
+
 	c.PATCH("/user/group/split/close", middleware.UserAuth, controllers.CloseSplit)
 	c.PATCH("/user/group/expense/close", middleware.UserAuth, controllers.CloseExpense)
 

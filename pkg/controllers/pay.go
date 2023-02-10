@@ -100,3 +100,84 @@ func PaySplit(c *gin.Context) {
 	}
 
 }
+
+func ViewWhoNotPaid(c *gin.Context) {
+	var body struct {
+		expenceid uint
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Invalid JSON",
+			"data":   "null",
+		})
+		return
+	}
+	var expense models.Expense
+	var split []models.Split
+	if err := db.DBS.First(&expense, "id=1"); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "Group Doesn't exist",
+			"error":   "error please enter valid information",
+		})
+		return
+	}
+	db.DBS.Find(&split, "expenseid=? and splitstatus=?", expense.ID, false).Scan(&split)
+	splitData := make([]map[string]interface{}, len(split))
+	for i, s := range split {
+		splitData[i] = map[string]interface{}{
+			"split id":     s.ID,
+			"userid":       s.Userid,
+			"split owner":  s.Username,
+			"amount":       s.Amount,
+			"split status": s.Splitstatus,
+		}
+	}
+	c.JSON(200, gin.H{
+		"status":  true,
+		"message": "persons who not paid",
+		"data":    splitData,
+	})
+}
+
+func ViewWhoPaid(c *gin.Context) {
+	var body struct {
+		expenceid uint
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"status": false,
+			"error":  "Invalid JSON",
+			"data":   "null",
+		})
+		return
+	}
+	var expense models.Expense
+	var split []models.Split
+	if err := db.DBS.First(&expense, "id=1"); err.Error != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status":  false,
+			"message": "Group Doesn't exist",
+			"error":   "error please enter valid information",
+		})
+		return
+	}
+	db.DBS.Find(&split, "expenseid=? and splitstatus=?", expense.ID, true).Scan(&split)
+
+	splitData := make([]map[string]interface{}, len(split))
+	for i, s := range split {
+		splitData[i] = map[string]interface{}{
+			"split id":     s.ID,
+			"userid":       s.Userid,
+			"split owner":  s.Username,
+			"amount":       s.Amount,
+			"split status": s.Splitstatus,
+		}
+	}
+	c.JSON(200, gin.H{
+		"status":  true,
+		"message": "persons who  paid",
+		"data":    splitData,
+	})
+}
