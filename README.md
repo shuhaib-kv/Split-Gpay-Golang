@@ -34,3 +34,8 @@ touch .env
 ```bash
 go run main.go
 ```
+
+## Documentation
+
+[POSTMAN](https://documenter.getpostman.com/view/23876360/2s935uFKw5)
+
