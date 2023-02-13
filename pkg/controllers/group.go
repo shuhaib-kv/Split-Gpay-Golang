@@ -137,13 +137,14 @@ func ViewMygroup(c *gin.Context) {
 
 		c.JSON(http.StatusOK, gin.H{
 			"status":  true,
-			"message": "Groups retrieved successfully",
+			"message": "Groups ",
 			"data":    groupData,
 		})
 	}
 }
 
 func ViewMembers(c *gin.Context) {
+
 	var body struct {
 		Group uint `json:"group"`
 	}

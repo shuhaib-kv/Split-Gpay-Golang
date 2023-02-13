@@ -93,6 +93,8 @@ func CreateSplit(c *gin.Context) {
 
 }
 func ViewSplit(c *gin.Context) {
+	id := c.GetUint("id")
+
 	var body struct {
 		expenceid uint
 	}
@@ -104,9 +106,26 @@ func ViewSplit(c *gin.Context) {
 		})
 		return
 	}
+	count := 1
+
 	var expense models.Expense
 	var split []models.Split
-	if err := db.DBS.First(&expense, "id=1"); err.Error != nil {
+	db.DBS.Find(&split, "expenseid=?", expense.ID).Scan(&split)
+	for _, j := range split {
+
+		if j.ID == id {
+			count = 0
+		}
+	}
+	if count != 0 {
+		c.JSON(200, gin.H{
+			"status":  true,
+			"message": "your split",
+			"data":    "you are not a split member",
+		})
+		return
+	}
+	if err := db.DBS.First(&expense, "id=?", body.expenceid); err.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  false,
 			"message": "Group Doesn't exist",
@@ -117,6 +136,7 @@ func ViewSplit(c *gin.Context) {
 	db.DBS.Find(&split, "expenseid=?", expense.ID).Scan(&split)
 	splitData := make([]map[string]interface{}, len(split))
 	for i, s := range split {
+
 		splitData[i] = map[string]interface{}{
 			"split id":     s.ID,
 			"user name":    s.Username,
